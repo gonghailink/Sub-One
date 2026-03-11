@@ -49,6 +49,8 @@ export class LoonConverter extends BaseConverter {
                     return this.hysteria(proxy);
                 case 'hysteria2':
                     return this.hysteria2(proxy);
+                case 'anytls':
+                    return this.anytls(proxy);
                 default:
                     console.warn(`[LoonConverter] Unsupported proxy type: ${proxy.type}`);
                     return '';
@@ -279,6 +281,45 @@ export class LoonConverter extends BaseConverter {
         result.append(
             `${proxy.name}=snell,${proxy.server},${proxy.port},psk="${proxy.password}",version=${proxy.version || 4}`
         );
+        return result.toString();
+    }
+
+    private anytls(proxy: ProxyNode): string {
+        const result = new Result(proxy);
+        result.append(`${proxy.name}=anytls,${proxy.server},${proxy.port},"${proxy.password}"`);
+
+        // Session 参数（只附加整数值）
+        for (const key of [
+            'idle-session-timeout',
+            'max-stream-count'
+        ] as const) {
+            if (isPresent(proxy, key) && Number.isInteger(proxy[key])) {
+                result.append(`,${key}=${proxy[key]}`);
+            }
+        }
+
+        // TLS验证
+        result.appendIfPresent(`,skip-cert-verify=${proxy['skip-cert-verify']}`, 'skip-cert-verify');
+        result.appendIfPresent(`,tls-name=${proxy.sni}`, 'sni');
+        result.appendIfPresent(`,tls-cert-sha256=${proxy['tls-fingerprint']}`, 'tls-fingerprint');
+        result.appendIfPresent(`,tls-pubkey-sha256=${proxy['tls-pubkey-sha256']}`, 'tls-pubkey-sha256');
+
+        // TFO
+        result.appendIfPresent(`,fast-open=${proxy.tfo}`, 'tfo');
+
+        // block-quic
+        if (proxy['block-quic'] === 'on') result.append(',block-quic=true');
+        else if (proxy['block-quic'] === 'off') result.append(',block-quic=false');
+
+        // UDP
+        if (proxy.udp) result.append(`,udp=true`);
+
+        // IP version
+        if (proxy['ip-version']) {
+            const val = ipVersions[proxy['ip-version']] || proxy['ip-version'];
+            result.append(`,ip-mode=${val}`);
+        }
+
         return result.toString();
     }
 

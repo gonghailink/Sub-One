@@ -133,6 +133,20 @@ export function parseClashNode(p: any): ProxyNode | null {
             node.password = p.password;
             break;
 
+        case 'anytls':
+            node.password = p.password;
+            node.tls = true; // AnyTLS 始终启用 TLS
+            // session 相关参数
+            if (p['idle-session-check-interval'] !== undefined)
+                node['idle-session-check-interval'] = p['idle-session-check-interval'];
+            if (p['idle-session-timeout'] !== undefined)
+                node['idle-session-timeout'] = p['idle-session-timeout'];
+            if (p['min-idle-session'] !== undefined)
+                node['min-idle-session'] = p['min-idle-session'];
+            if (p['max-stream-count'] !== undefined)
+                node['max-stream-count'] = p['max-stream-count'];
+            break;
+
         case 'hysteria2':
             node.password = p.password;
             if (p.obfs) {

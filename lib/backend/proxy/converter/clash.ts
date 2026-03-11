@@ -143,6 +143,14 @@ export class ClashConverter extends BaseConverter {
             } else if (node.type === 'tuic' || node.type === 'hysteria2') {
                 if (node.alpn) node.alpn = Array.isArray(node.alpn) ? node.alpn : [node.alpn];
                 if (node.tfo && !node['fast-open']) node['fast-open'] = node.tfo;
+            } else if (node.type === 'anytls') {
+                // AnyTLS 天然启用 TLS，不需要显式输出 tls 字段
+                delete node.tls;
+                // sni 映射到 servername
+                if (node.sni && !node.servername) {
+                    node.servername = node.sni;
+                    delete node.sni;
+                }
             }
 
             if (node['client-fingerprint']) {

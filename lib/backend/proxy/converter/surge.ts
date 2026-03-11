@@ -282,9 +282,30 @@ export class SurgeConverter extends BaseConverter {
 
     private anytls(proxy: ProxyNode): string {
         const result = new Result(proxy);
-        result.append(
-            `${proxy.name}=anytls,${proxy.server},${proxy.port},password=\"${proxy.password}\"`
+        result.append(`${proxy.name}=anytls,${proxy.server},${proxy.port}`);
+        result.appendIfPresent(`,password="${proxy.password}"`, 'password');
+
+        // TLS fingerprint
+        result.appendIfPresent(
+            `,server-cert-fingerprint-sha256=${proxy['tls-fingerprint']}`,
+            'tls-fingerprint'
         );
+
+        // TLS verification
+        result.appendIfPresent(`,sni=${proxy.sni}`, 'sni');
+        result.appendIfPresent(
+            `,skip-cert-verify=${proxy['skip-cert-verify']}`,
+            'skip-cert-verify'
+        );
+
+        // session params
+        if (isPresent(proxy, 'idle-session-timeout') && Number.isInteger(proxy['idle-session-timeout'])) {
+            result.append(`,idle-session-timeout=${proxy['idle-session-timeout']}`);
+        }
+        if (isPresent(proxy, 'max-stream-count') && Number.isInteger(proxy['max-stream-count'])) {
+            result.append(`,max-stream-count=${proxy['max-stream-count']}`);
+        }
+
         this.appendCommon(result, proxy);
         return result.toString();
     }

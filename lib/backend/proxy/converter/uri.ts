@@ -246,11 +246,23 @@ export class URIConverter extends BaseConverter {
 
     private anytls(node: ProxyNode): string {
         const params = new URLSearchParams();
-        this.appendVLESSParams(params, { ...node, uuid: node.password });
+        if (node.sni) params.set('sni', node.sni);
+        if (node['client-fingerprint']) params.set('fp', node['client-fingerprint']);
+        if (node.alpn) params.set('alpn', Array.isArray(node.alpn) ? node.alpn[0] : node.alpn);
+        if (node['skip-cert-verify']) params.set('insecure', '1');
+        if (node.udp) params.set('udp', '1');
+        if (node['idle-session-check-interval'] !== undefined)
+            params.set('idle-session-check-interval', String(node['idle-session-check-interval']));
+        if (node['idle-session-timeout'] !== undefined)
+            params.set('idle-session-timeout', String(node['idle-session-timeout']));
+        if (node['min-idle-session'] !== undefined)
+            params.set('min-idle-session', String(node['min-idle-session']));
+        if (node['max-stream-count'] !== undefined)
+            params.set('max-stream-count', String(node['max-stream-count']));
         let queryString = params.toString();
         if (queryString) queryString = '?' + queryString;
         const hash = node.name ? `#${encodeURIComponent(String(node.name))}` : '';
-        return `anytls://${node.password}@${node.server}:${node.port}${queryString}${hash}`;
+        return `anytls://${encodeURIComponent(node.password || '')}@${node.server}:${node.port}${queryString}${hash}`;
     }
 
     private naive(node: ProxyNode): string {

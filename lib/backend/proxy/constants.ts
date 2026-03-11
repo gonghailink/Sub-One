@@ -283,7 +283,8 @@ export const PLATFORM_PROTOCOL_SUPPORT: Record<string, string[]> = {
         'tuic',
         'wireguard',
         'socks5',
-        'http'
+        'http',
+        'anytls'
     ],
 
     Surge: [
@@ -305,12 +306,14 @@ export const PLATFORM_PROTOCOL_SUPPORT: Record<string, string[]> = {
         'vmess',
         'vless',
         'trojan',
+        'hysteria',
         'hysteria2',
         'tuic',
         'wireguard',
         'socks5',
         'http',
-        'snell'
+        'snell',
+        'anytls'
     ],
 
     QuantumultX: [
@@ -335,7 +338,8 @@ export const PLATFORM_PROTOCOL_SUPPORT: Record<string, string[]> = {
         'hysteria2',
         'tuic',
         'socks5',
-        'http'
+        'http',
+        'anytls'
     ]
 };
 

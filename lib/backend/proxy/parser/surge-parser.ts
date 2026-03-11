@@ -135,11 +135,13 @@ function mapSurgeParams(proxy: Partial<ProxyNode>, params: Record<string, string
     if (params.psk) proxy.password = params.psk;
     if (params['encrypt-method']) proxy.cipher = params['encrypt-method'];
 
-    // TLS
-    proxy.tls = params.tls === 'true' || proxy.type === 'https' || !!params.sni;
+    // TLS - anytls 协议始终使用 TLS
+    proxy.tls = params.tls === 'true' || proxy.type === 'https' || proxy.type === 'anytls' || !!params.sni;
     if (params.sni) proxy.sni = params.sni;
     if (params['skip-cert-verify'])
         proxy['skip-cert-verify'] = params['skip-cert-verify'] === 'true';
+    if (params['server-cert-fingerprint-sha256'])
+        proxy['tls-fingerprint'] = params['server-cert-fingerprint-sha256'];
     if (params['client-fingerprint']) proxy['client-fingerprint'] = params['client-fingerprint'];
 
     // TCP / UDP / TFO
@@ -176,6 +178,21 @@ function mapSurgeParams(proxy: Partial<ProxyNode>, params: Record<string, string
             break;
         case 'snell':
             if (params.version) proxy.version = parseInt(params.version, 10);
+            break;
+        case 'anytls':
+            // AnyTLS session 相关参数
+            if (params['idle-session-check-interval']) {
+                const v = parseInt(params['idle-session-check-interval'], 10);
+                if (!isNaN(v)) proxy['idle-session-check-interval'] = v;
+            }
+            if (params['idle-session-timeout']) {
+                const v = parseInt(params['idle-session-timeout'], 10);
+                if (!isNaN(v)) proxy['idle-session-timeout'] = v;
+            }
+            if (params['max-stream-count']) {
+                const v = parseInt(params['max-stream-count'], 10);
+                if (!isNaN(v)) proxy['max-stream-count'] = v;
+            }
             break;
         case 'external':
             proxy.exec = params.exec;

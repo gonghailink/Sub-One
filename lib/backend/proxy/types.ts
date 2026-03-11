@@ -204,6 +204,13 @@ export interface ProxyNode {
         reserved?: string | number[];
     }>;
 
+    // === AnyTLS 特有 ===
+    'idle-session-check-interval'?: number; // 空闲会话检测间隔 (秒)
+    'idle-session-timeout'?: number; // 空闲会话超时 (秒)
+    'min-idle-session'?: number; // 最小空闲会话数
+    'max-stream-count'?: number; // 最大流数量
+    'tls-pubkey-sha256'?: string; // TLS 公钥 SHA256
+
     // === Snell 特有 ===
     version?: number; // Snell 版本
     'obfs-opts'?: {

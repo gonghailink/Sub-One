@@ -33,6 +33,8 @@ export class SurfboardConverter extends BaseConverter {
                     return this.socks5(p);
                 case 'wireguard':
                     return this.wireguard(p);
+                case 'anytls':
+                    return this.anytls(p);
                 default:
                     console.warn(`[SurfboardConverter] Unsupported proxy type: ${p.type}`);
                     return '';
@@ -130,6 +132,27 @@ export class SurfboardConverter extends BaseConverter {
         const result = new Result(proxy);
         result.append(`${proxy.name}=wireguard`);
         result.appendIfPresent(`,section-name=${proxy.name}`, 'name');
+        return result.toString();
+    }
+
+    private anytls(proxy: ProxyNode): string {
+        const result = new Result(proxy);
+        result.append(`${proxy.name}=anytls,${proxy.server},${proxy.port}`);
+        result.appendIfPresent(`,password=${proxy.password}`, 'password');
+
+        // TLS verification
+        result.appendIfPresent(`,sni=${proxy.sni}`, 'sni');
+        result.appendIfPresent(`,skip-cert-verify=${proxy['skip-cert-verify']}`, 'skip-cert-verify');
+
+        // TFO
+        result.appendIfPresent(`,tfo=${proxy.tfo}`, 'tfo');
+
+        // UDP
+        result.appendIfPresent(`,udp-relay=${proxy.udp}`, 'udp');
+
+        // reuse
+        result.appendIfPresent(`,reuse=${proxy['reuse']}`, 'reuse');
+
         return result.toString();
     }
 

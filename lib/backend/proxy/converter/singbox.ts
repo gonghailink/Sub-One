@@ -123,6 +123,17 @@ export class SingboxConverter extends BaseConverter {
                     outbound.mtu = node.mtu || 1420;
                     outbound.reserved = node.reserved;
                     break;
+                case 'anytls':
+                    outbound.password = node.password;
+                    // session 相关参数
+                    if (/^\d+$/.test(String(node['idle-session-check-interval'])))
+                        outbound.idle_session_check_interval = `${node['idle-session-check-interval']}s`;
+                    if (/^\d+$/.test(String(node['idle-session-timeout'])))
+                        outbound.idle_session_timeout = `${node['idle-session-timeout']}s`;
+                    if (/^\d+$/.test(String(node['min-idle-session'])))
+                        outbound.min_idle_session = parseInt(String(node['min-idle-session']), 10);
+                    this.appendTLS(outbound, node);
+                    break;
             }
 
             // Common opts

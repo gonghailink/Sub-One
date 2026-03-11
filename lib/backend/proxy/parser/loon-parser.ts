@@ -61,6 +61,10 @@ export function parseLoon(line: string): ProxyNode | null {
         } else if (rawType === 'trojan') {
             proxy.type = 'trojan';
             if (parts.length >= 4) proxy.password = parts[3];
+        } else if (rawType === 'anytls') {
+            proxy.type = 'anytls';
+            if (parts.length >= 4) proxy.password = parts[3];
+            proxy.tls = true; // AnyTLS 始终使用 TLS
         } else {
             proxy.type = rawType as ProxyType;
         }
@@ -193,12 +197,26 @@ function mapLoonParams(proxy: Partial<ProxyNode>, params: Record<string, string>
     if (params.encrypt || params['encrypt-method'])
         proxy.cipher = params.encrypt || params['encrypt-method'];
 
-    proxy.tls = params.tls === 'true' || proxy.type === 'https';
-    if (params.sni) proxy.sni = params.sni;
+    proxy.tls = params.tls === 'true' || proxy.type === 'https' || proxy.type === 'anytls';
+    if (params.sni || params['tls-name']) proxy.sni = params.sni || params['tls-name'];
     if (params['skip-cert-verify'])
         proxy['skip-cert-verify'] = params['skip-cert-verify'] === 'true';
+    if (params['tls-cert-sha256']) proxy['tls-fingerprint'] = params['tls-cert-sha256'];
+    if (params['tls-pubkey-sha256']) proxy['tls-pubkey-sha256'] = params['tls-pubkey-sha256'];
     if (params.udp) proxy.udp = params.udp === 'true';
     if (params['fast-open']) proxy.tfo = params['fast-open'] === 'true';
+
+    // AnyTLS session 参数
+    if (proxy.type === 'anytls') {
+        if (params['idle-session-timeout']) {
+            const v = parseInt(params['idle-session-timeout'], 10);
+            if (Number.isInteger(v)) proxy['idle-session-timeout'] = v;
+        }
+        if (params['max-stream-count']) {
+            const v = parseInt(params['max-stream-count'], 10);
+            if (Number.isInteger(v)) proxy['max-stream-count'] = v;
+        }
+    }
 
     // 传输层
     if (params.obfs === 'ws' || params.obfs === 'wss') {
