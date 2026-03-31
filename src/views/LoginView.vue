@@ -21,20 +21,28 @@
 -->
 
 <script setup lang="ts">
-// ==================== 导入依赖 ====================
-import { ref } from 'vue';
-
-// ==================== Props 定义 ====================
+import { computed, ref } from 'vue';
+import { useSessionStore } from '@/stores/useSessionStore';
+import { useRouter } from 'vue-router';
 
 /**
- * 组件属性定义
+ * 组件属性定义 (保留接口兼容性，但优先使用 Store)
  */
 const props = defineProps<{
-    /** 登录函数 - 接收用户名和密码并返回 Promise */
-    login: (username: string, password: string) => Promise<any>;
-    /** 是否为初始化设置模式 */
+    /** 登录函数 - 可选，不传则使用 Store 中的函数 */
+    login?: (username: string, password: string) => Promise<any>;
+    /** 是否为初始化设置模式 - 可选，不传则使用 Store 中的状态 */
     isSetup?: boolean;
 }>();
+
+const sessionStore = useSessionStore();
+const router = useRouter();
+
+// 优先使用 Store 中的状态
+const actualIsSetup = computed(() => props.isSetup ?? sessionStore.sessionState === 'needsSetup');
+const actualLoginFunc = computed(() =>
+    props.login ?? (actualIsSetup.value ? sessionStore.initializeSystem : sessionStore.login)
+);
 
 // ==================== 响应式状态 ====================
 
@@ -77,7 +85,7 @@ const handleSubmit = async () => {
     }
 
     // 如果是设置模式，验证确认密码
-    if (props.isSetup) {
+    if (actualIsSetup.value) {
         if (!confirmPassword.value.trim()) {
             error.value = '请确认密码';
             return;
@@ -99,7 +107,9 @@ const handleSubmit = async () => {
 
     try {
         // 调用登录函数
-        await props.login(username.value, password.value);
+        await actualLoginFunc.value(username.value, password.value);
+        // 成功后由路由跳转
+        router.push({ name: 'dashboard' });
     } catch (err: unknown) {
         // 捕获并显示错误信息
         const msg = err instanceof Error ? err.message : String(err);
