@@ -80,7 +80,7 @@ export function detectFormat(content: string): ContentFormat {
     // 6. URI 列表检测
     // 逻辑：包含常见协议头
     if (
-        /^(ss|ssr|vmess|vless|trojan|hysteria|hy2|tuic|wg|wireguard|socks|http|https|snell|anytls):\/\//im.test(
+        /^(ss|ssr|vmess|vless|trojan|hysteria2|hysteria|hy2|tuic|wg|wireguard|socks|http|https|snell|anytls):\/\//im.test(
             trimmed
         )
     ) {
@@ -115,7 +115,7 @@ function isLikelyBase64(str: string): boolean {
     try {
         const decoded = Base64.decode(str);
         // 解码后应该包含协议头
-        return /^(ss|ssr|vmess|vless|trojan|hysteria|hy2|tuic|anytls|snell|wg|wireguard|socks|http|https):\/\//im.test(
+        return /^(ss|ssr|vmess|vless|trojan|hysteria2|hysteria|hy2|tuic|anytls|snell|wg|wireguard|socks|http|https):\/\//im.test(
             decoded
         );
     } catch {
